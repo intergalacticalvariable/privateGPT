@@ -5,6 +5,8 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.vectorstores import Chroma
 from langchain.llms import GPT4All, LlamaCpp
+from langchain.chat_models import ChatOpenAI
+
 import os
 import argparse
 import time
@@ -19,6 +21,11 @@ model_path = os.environ.get('MODEL_PATH')
 model_n_ctx = os.environ.get('MODEL_N_CTX')
 model_n_batch = int(os.environ.get('MODEL_N_BATCH',8))
 target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',4))
+
+base_path = os.environ.get('OPENAI_API_BASE', 'http://localhost:8080/v1')
+key = os.environ.get('OPENAI_API_KEY', '-')
+model_name = os.environ.get('MODEL_NAME', 'gpt-3.5-turbo')
+
 
 from constants import CHROMA_SETTINGS
 
@@ -36,6 +43,8 @@ def main():
             llm = LlamaCpp(model_path=model_path, n_ctx=model_n_ctx, n_batch=model_n_batch, callbacks=callbacks, verbose=False)
         case "GPT4All":
             llm = GPT4All(model=model_path, n_ctx=model_n_ctx, backend='gptj', n_batch=model_n_batch, callbacks=callbacks, verbose=False)
+        case "OpenAI":
+            llm = ChatOpenAI(temperature=0, openai_api_base=base_path, openai_api_key=key, model_name=model_name)
         case _default:
             # raise exception if model_type is not supported
             raise Exception(f"Model type {model_type} is not supported. Please choose one of the following: LlamaCpp, GPT4All")
