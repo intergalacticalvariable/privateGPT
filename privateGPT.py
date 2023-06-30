@@ -19,8 +19,8 @@ persist_directory = os.environ.get('PERSIST_DIRECTORY')
 model_type = os.environ.get('MODEL_TYPE')
 model_path = os.environ.get('MODEL_PATH')
 model_n_ctx = os.environ.get('MODEL_N_CTX')
-model_n_batch = int(os.environ.get('MODEL_N_BATCH',8))
-target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',4))
+model_n_batch = int(os.environ.get('MODEL_N_BATCH',64))
+target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',8))
 
 base_path = os.environ.get('OPENAI_API_BASE', 'http://localhost:8080/v1')
 key = os.environ.get('OPENAI_API_KEY', '-')
@@ -29,7 +29,7 @@ model_name = os.environ.get('MODEL_NAME', 'gpt-3.5-turbo')
 
 from constants import CHROMA_SETTINGS
 
-def main():
+def main(query):
     # Parse the command line arguments
     args = parse_arguments()
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
@@ -48,11 +48,11 @@ def main():
         case _default:
             # raise exception if model_type is not supported
             raise Exception(f"Model type {model_type} is not supported. Please choose one of the following: LlamaCpp, GPT4All")
-        
+
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents= not args.hide_source)
     # Interactive questions and answers
     while True:
-        query = input("\nEnter a query: ")
+        #query = input("\nEnter a query: ")
         if query == "exit":
             break
         if query.strip() == "":
@@ -74,7 +74,7 @@ def main():
         for document in docs:
             print("\n> " + document.metadata["source"] + ":")
             print(document.page_content)
-
+        return answer
 def parse_arguments():
     parser = argparse.ArgumentParser(description='privateGPT: Ask questions to your documents without an internet connection, '
                                                  'using the power of LLMs.')
